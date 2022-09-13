@@ -32,28 +32,6 @@ jobs:
                   echo "plan_client_build_shard_array: ${{ steps.ci-plan.outputs.plan_client_build_shard_array }}"
                   echo "plan_tests_shard_array: ${{ steps.ci-plan.outputs.plan_tests_shard_array }}"
 
-    # test:
-    #     runs-on: ubuntu-latest
-    #     needs: [plan]
-    #     # Don't run the job if there is nothing to do. The weird syntax here is due to
-    #     # Github does not providing length function yet:
-    #     # @see https://github.com/orgs/community/discussions/27125
-    #     if: ${{ fromJson(needs.plan.outputs.plan_tests_shard_array)[0] != null }}
-    #     strategy:
-    #         fail-fast: false
-    #         matrix:
-    #             shard: ${{ fromJson(needs.plan.outputs.plan_tests_shard_array) }}
-    #     steps:
-    #         - uses: actions/checkout@v3
-    #           with:
-    #               persist-credentials: false
-    #               fetch-depth: 0
-
-    #         - name: Should run test
-    #           run: |
-    #               echo "Test ok"
-
-
     test:
         runs-on: ubuntu-latest
         needs: [plan]
@@ -61,6 +39,10 @@ jobs:
         # Github does not providing length function yet:
         # @see https://github.com/orgs/community/discussions/27125
         if: ${{ fromJson(needs.plan.outputs.plan_tests_shard_array)[0] != null }}
+        strategy:
+            fail-fast: false
+            matrix:
+                shard: ${{ fromJson(needs.plan.outputs.plan_tests_shard_array) }}
         steps:
             - uses: actions/checkout@v3
               with:
@@ -94,9 +76,17 @@ jobs:
 
     release:
         # if: ${{ github.event_name == 'push' }} # runs only on merge to master
+        if: ${{ always() }}
         runs-on: ubuntu-latest
         needs: [report-ci-status]
         steps:
             - name: Should do release
               run: |
-                  echo "Release ok"
+                  if ${{ contains(join(needs.*.result, ','), 'failure') || contains(join(needs.*.result, ','), 'cancelled') }} ; 
+                  then
+                    echo "Fail release"
+                    exit 1
+                  else 
+                    echo "Do release"
+                    exit 0
+                  fi
