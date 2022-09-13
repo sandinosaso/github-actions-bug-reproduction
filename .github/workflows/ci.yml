@@ -14,8 +14,8 @@ jobs:
     plan:
         runs-on: self-hosted
         outputs:
-            plan_client_build_shard_array: [1,2]
-            plan_tests_shard_array: []
+            plan_client_build_shard_array: ${{ toJson([1,2]) }}
+            plan_tests_shard_array: ${{ toJson([]) }}
         steps:
             - uses: actions/checkout@v3
               with:
