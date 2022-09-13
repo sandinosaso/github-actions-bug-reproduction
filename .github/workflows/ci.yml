@@ -12,7 +12,7 @@ env:
 
 jobs:
     plan:
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
         outputs:
             plan_client_build_shard_array: ${{ steps.ci-plan.outputs.plan_client_build_shard_array }}
             plan_tests_shard_array: ${{ steps.ci-plan.outputs.plan_tests_shard_array }}
@@ -22,7 +22,7 @@ jobs:
                   persist-credentials: false
                   fetch-depth: 0
 
-            - id: Set matrix
+            - name: Set matrix
               run: |
                   echo "::set-output name=plan_client_build_shard_array::[1,2]"
                   echo "::set-output name=plan_tests_shard_array::[]"
@@ -33,7 +33,7 @@ jobs:
                   echo "plan_tests_shard_array: ${{ steps.ci-plan.outputs.plan_tests_shard_array }}"
 
     test:
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
         needs: [plan]
         # Don't run the job if there is nothing to do. The weird syntax here is due to
         # Github does not providing length function yet:
@@ -55,7 +55,7 @@ jobs:
             
 
     report-ci-status:
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
         if: ${{ always() }}
         needs:
             - plan
@@ -76,7 +76,7 @@ jobs:
 
     release:
         # if: ${{ github.event_name == 'push' }} # runs only on merge to master
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
         needs: [report-ci-status]
         steps:
             - name: Should do release
