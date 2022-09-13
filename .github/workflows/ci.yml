@@ -1,0 +1,79 @@
+name: 'ci'
+
+on:
+    pull_request:
+        types: [opened, reopened, synchronize]
+    push:
+        branches: [master, copy-of-master-*]
+
+env:
+    GITHUB_TOKEN: ${{ github.token }}
+    NODE_OPTIONS: '--max_old_space_size=5124 --unhandled-rejections=warn'
+
+jobs:
+    plan:
+        runs-on: self-hosted
+        outputs:
+            plan_client_build_shard_array: [1,2]
+            plan_tests_shard_array: []
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  persist-credentials: false
+                  fetch-depth: 0
+
+            - name: Show created shards ids
+              run: |
+                  echo "plan_client_build_shard_array: ${{ steps.ci-plan.outputs.plan_client_build_shard_array }}"
+                  echo "plan_tests_shard_array: ${{ steps.ci-plan.outputs.plan_tests_shard_array }}"
+
+    test:
+        runs-on: self-hosted
+        needs: [plan]
+        # Don't run the job if there is nothing to do. The weird syntax here is due to
+        # Github does not providing length function yet:
+        # @see https://github.com/orgs/community/discussions/27125
+        if: ${{ fromJson(needs.plan.outputs.plan_tests_shard_array)[0] != null }}
+        strategy:
+            fail-fast: false
+            matrix:
+                shard: ${{ fromJson(needs.plan.outputs.plan_tests_shard_array) }}
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  persist-credentials: false
+                  fetch-depth: 0
+
+            - name: Should run test
+              run: |
+                  echo "Test ok"
+            
+
+    report-ci-status:
+        runs-on: self-hosted
+        if: ${{ always() }}
+        needs:
+            - plan
+            - test
+
+        steps:
+            # This will be replaced by test aggregation in the future
+            - name: Report CI Status
+              run: |
+                  if ${{ contains(join(needs.*.result, ','), 'failure') || contains(join(needs.*.result, ','), 'cancelled') }} ; 
+                  then
+                    echo "Fails"
+                    exit 1
+                  else 
+                    echo "Pass"
+                    exit 0
+                  fi
+
+    release:
+        # if: ${{ github.event_name == 'push' }} # runs only on merge to master
+        runs-on: self-hosted
+        needs: [report-ci-status]
+        steps:
+            - name: Should do release
+              run: |
+                  echo "Release ok"
