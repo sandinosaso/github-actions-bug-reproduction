@@ -24,8 +24,8 @@ jobs:
 
             - name: Set matrix
               run: |
-                  echo "::set-output name=plan_client_build_shard_array::[1,2]"
-                  echo "::set-output name=plan_tests_shard_array::[]"
+                  echo "::set-output name=plan_client_build_shard_array::'[1,2]'"
+                  echo "::set-output name=plan_tests_shard_array::'[]'"
 
             - name: Show created shards ids
               run: |
