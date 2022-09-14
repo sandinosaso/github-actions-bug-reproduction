@@ -73,7 +73,6 @@ jobs:
                   fi
 
     release:
-        # if: ${{ github.event_name == 'push' }} # runs only on merge to master
         if: ${{ always() }}
         runs-on: ubuntu-latest
         needs: [report-ci-status]
