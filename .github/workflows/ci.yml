@@ -14,7 +14,6 @@ jobs:
     plan:
         runs-on: ubuntu-latest
         outputs:
-            plan_client_build_shard_array: ${{ steps.ci-plan.outputs.plan_client_build_shard_array }}
             plan_tests_shard_array: ${{ steps.ci-plan.outputs.plan_tests_shard_array }}
         steps:
             - uses: actions/checkout@v3
@@ -24,12 +23,10 @@ jobs:
 
             - name: Set matrix
               run: |
-                  echo "::set-output name=plan_client_build_shard_array::'[1,2]'"
-                  echo "::set-output name=plan_tests_shard_array::'[]'"
+                  echo "::set-output name=plan_tests_shard_array::\"[]\""
 
             - name: Show created shards ids
               run: |
-                  echo "plan_client_build_shard_array: ${{ steps.ci-plan.outputs.plan_client_build_shard_array }}"
                   echo "plan_tests_shard_array: ${{ steps.ci-plan.outputs.plan_tests_shard_array }}"
 
     test:
